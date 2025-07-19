@@ -9,6 +9,7 @@ const groups = {
     H: ["portugal", "ghana", "uruguay", "korea"]
 };
 
+let groupSelections = {};  
 let selections = {
     round16: [],
     quarterFinals: [],
@@ -17,7 +18,7 @@ let selections = {
     champion: ""
 };
 
-let groupSelections = {};
+let allSubmitted = false;
 
 function init() {
     const groupsDiv = document.getElementById('groups');
@@ -28,81 +29,116 @@ function init() {
         teams.forEach(team => {
             const teamDiv = document.createElement('div');
             teamDiv.className = 'team';
-            teamDiv.dataset.locked = "false"; // 🛡️ add locked flag
             teamDiv.innerHTML = `<img src="assets/img/flag/${team}.png"> ${capitalize(team)}`;
             teamDiv.onclick = () => selectGroupTeam(group, team, teamDiv);
             groupBox.appendChild(teamDiv);
         });
         groupsDiv.appendChild(groupBox);
     }
+
+    document.getElementById('submitAll').onclick = submitAll;
 }
 
 function selectGroupTeam(group, team, el) {
+    if (allSubmitted) return;
+
     if (!groupSelections[group]) groupSelections[group] = [];
-    if (el.dataset.locked === "true") return;
-    if (groupSelections[group].length >= 2) return;
 
-    el.dataset.locked = "true"; // 🛡️ lock immediately
-    groupSelections[group].push(team);
-    el.classList.add('selected');
+    if (groupSelections[group].includes(team)) {
+        groupSelections[group] = groupSelections[group].filter(t => t !== team);
+        el.classList.remove('selected');
+    } else {
+        if (groupSelections[group].length >= 2) {
+            alert('Max 2 teams per group!');
+            return;
+        }
+        groupSelections[group].push(team);
+        el.classList.add('selected');
+    }
 
-    if (Object.values(groupSelections).flat().length === 16) {
-        selections.round16 = Object.values(groupSelections).flat();
-        buildStage('round16', selections.round16, 'quarterFinals');
+    if (Object.values(groupSelections).every(g => g.length === 2) && selections.round16.length === 0) {
+        buildRoundOf16();
     }
 }
 
-function buildStage(containerId, teams, nextStage) {
+function submitAll() {
+    if (Object.values(groupSelections).some(g => g.length !== 2)) {
+        alert('Complete group selections!');
+        return;
+    }
+    if (!selections.champion) {
+        alert('Please select your champion!');
+        return;
+    }
+    allSubmitted = true;
+    alert('✅ All predictions submitted and locked!');
+}
+
+function buildRoundOf16() {
+    const matchups = [
+        [groupSelections.A[0], groupSelections.B[1]],
+        [groupSelections.C[0], groupSelections.D[1]],
+        [groupSelections.E[0], groupSelections.F[1]],
+        [groupSelections.G[0], groupSelections.H[1]],
+        [groupSelections.B[0], groupSelections.A[1]],
+        [groupSelections.D[0], groupSelections.C[1]],
+        [groupSelections.F[0], groupSelections.E[1]],
+        [groupSelections.H[0], groupSelections.G[1]],
+    ];
+    buildStage('round16', matchups, 'quarterFinals');
+}
+
+function buildStage(containerId, matchups, nextStage) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
-    for (let i = 0; i < teams.length; i += 2) {
+    selections[nextStage] = new Array(matchups.length).fill(null);
+
+    matchups.forEach((pair, index) => {
         const match = document.createElement('div');
         match.className = 'match';
-        match.dataset.locked = "false";
         match.innerHTML = `
-            <div class="team" data-locked="false" onclick="advance(this, '${teams[i]}', '${nextStage}')">
-                <img src="assets/img/flag/${teams[i]}.png"> ${capitalize(teams[i])}
+            <div class="team" onclick="advance(this, '${pair[0]}', '${nextStage}', ${index})">
+                <img src="assets/img/flag/${pair[0]}.png"> ${capitalize(pair[0])}
             </div>
             VS
-            <div class="team" data-locked="false" onclick="advance(this, '${teams[i + 1]}', '${nextStage}')">
-                <img src="assets/img/flag/${teams[i + 1]}.png"> ${capitalize(teams[i + 1])}
+            <div class="team" onclick="advance(this, '${pair[1]}', '${nextStage}', ${index})">
+                <img src="assets/img/flag/${pair[1]}.png"> ${capitalize(pair[1])}
             </div>
         `;
         container.appendChild(match);
+    });
+}
+
+function advance(el, team, nextStage, index) {
+    if (allSubmitted) return;
+
+    const matchDiv = el.parentNode;
+    matchDiv.querySelectorAll('.team').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+
+    selections[nextStage][index] = team;
+
+    if (nextStage === 'quarterFinals' && selections[nextStage].every(t => t)) {
+        buildStage('quarterFinals', makePairs(selections[nextStage]), 'semiFinals');
+    } else if (nextStage === 'semiFinals' && selections[nextStage].every(t => t)) {
+        buildStage('semiFinals', makePairs(selections[nextStage]), 'finalMatch');
+    } else if (nextStage === 'finalMatch' && selections[nextStage].every(t => t)) {
+        buildStage('finalMatch', makePairs(selections[nextStage]), 'champion');
+    } else if (nextStage === 'champion') {
+        selections.champion = team;
+        showChampion(team);
     }
 }
 
-function advance(el, team, nextStage) {
-    const matchDiv = el.parentNode;
-    if (matchDiv.dataset.locked === "true") return;
-
-    matchDiv.dataset.locked = "true"; // 🛡️ lock immediately
-
-    matchDiv.querySelectorAll('.team').forEach(t => {
-        t.dataset.locked = "true"; // 🛡️ lock teams too
-        t.classList.remove('selected');
-    });
-
-    el.classList.add('selected');
-
-    if (nextStage === 'champion') {
-        showChampion(team);
-        return;
+function makePairs(list) {
+    const pairs = [];
+    for (let i = 0; i < list.length; i += 2) {
+        pairs.push([list[i], list[i + 1]]);
     }
-
-    selections[nextStage].push(team);
-
-    if (nextStage === 'quarterFinals' && selections[nextStage].length === 8) {
-        buildStage('quarterFinals', selections[nextStage], 'semiFinals');
-    } else if (nextStage === 'semiFinals' && selections[nextStage].length === 4) {
-        buildStage('semiFinals', selections[nextStage], 'finalMatch');
-    } else if (nextStage === 'finalMatch' && selections[nextStage].length === 2) {
-        buildStage('finalMatch', selections[nextStage], 'champion');
-    }
+    return pairs;
 }
 
 function showChampion(team) {
-    selections.champion = team;
     const championDiv = document.getElementById('champion');
     championDiv.innerHTML = `👑 <span class="winner">${capitalize(team)}</span> 👑`;
 }
