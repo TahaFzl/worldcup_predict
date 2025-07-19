@@ -1,88 +1,82 @@
 body {
-  position: relative;
-  background-image: url("../img/bg.png");
-  background-size: cover;
-  padding: 100px;
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
 }
 
-img {
-  width: 100%;
+h1, h2 {
+    margin: 20px 0;
 }
 
-h6 {
-  text-align: center;
-  padding: 0;
-  margin: 0;
+.groups, .matches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
 }
 
-.img_container {
-  box-shadow: 0 0 9px 3px #f4dbb5;
-  background-color: white;
-  width: 50px;
-  position: absolute;
+.group, .match {
+    background: #1e1e1e;
+    border-radius: 10px;
+    padding: 10px;
+    width: 200px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
-#switzerland {
-  transform: translateY(-20px);
+.team {
+    display: flex;
+    align-items: center;
+    background: #2a2a2a;
+    border-radius: 5px;
+    margin: 5px 0;
+    padding: 5px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-.name-group {
-  position: absolute;
-  font-weight: bold;
+.team:hover {
+    background: #333;
 }
 
-.champion {
-  width: 50px;
-  position: absolute;
-}
-.champion img {
-  width: 150%;
-  box-shadow: 0 0 20px 15px #ffcf86;
-}
-.champion h6 {
-  font-size: 20px;
-  text-align: center;
-  margin-left: 7px;
+.team img {
+    width: 30px;
+    height: 20px;
+    margin-right: 10px;
+    object-fit: cover;
+    border-radius: 3px;
 }
 
-#groupA {
-  top: 25px;
-  left: 35px;
+.selected {
+    background-color: #4caf50 !important;
+    color: #fff;
+    font-weight: bold;
 }
 
-#groupB {
-  top: 25px;
-  left: 1330px;
+#champion {
+    font-size: 28px;
+    margin-top: 20px;
 }
 
-#groupC {
-  top: 220px;
-  left: 35px;
+#champion .winner {
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    text-shadow: 0 0 10px gold, 0 0 20px gold;
+    padding: 10px 20px;
+    border-radius: 15px;
+    background: linear-gradient(90deg, #ffcc00, #ffeb3b, #ffcc00);
+    display: inline-block;
+    animation: glow 1s infinite alternate;
 }
 
-#groupD {
-  top: 220px;
-  left: 1330px;
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px gold, 0 0 20px gold;
+    }
+    to {
+        text-shadow: 0 0 20px gold, 0 0 40px gold;
+    }
 }
-
-#groupE {
-  top: 410px;
-  left: 35px;
-}
-
-#groupF {
-  top: 410px;
-  left: 1330px;
-}
-
-#groupG {
-  top: 600px;
-  left: 35px;
-}
-
-#groupH {
-  top: 600px;
-  left: 1330px;
-}
-
-/*# sourceMappingURL=style.css.map */
